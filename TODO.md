@@ -48,3 +48,45 @@ Testing
     - Do the routes assert the requirements(signup/signin)
 
 
+****************************************************************************
+
+
+# Tuesday
+
+- Noted here are the relevant changes you’ll need to make to your server to complete Phase 2:
+
+  - Add a new /oauth route to the auth router
+    In order to handle OAuth requests, we will need a route that can receive the initial code from the OAuth server and a middleware module that will handle the handshaking process.
+
+    This should be a GET route
+    i.e. app.get('/oauth', ...)
+
+  - OAuth Middleware Module
+  In order to handle the handshake process that is the heart of OAuth, we need a new middleware module that will, when added to the /oauth route, will complete the task of authenticating the user.
+
+  - Create a new middleware module called oauth.js in your auth module’s middleware folder
+
+  - This should be required by your auth router and attached inline to the /oauth route:
+    - app.get('/oauth', OAuthMiddleware, ...)
+
+  - This middleware will need to do the following:
+
+    - Exchange the code received on the initial request for a token from the Provider
+    - Use the token to retrieve the user’s account information from the Provider
+    - Create/Retrieve an account from our Mongo users database matching the user’s account (email or username) using the users model
+    - Generate a token using the users model
+    - Add the token and the user record to the request object
+    - If it is successful, use next() to continue on to the actual route handler
+    - If not, the middleware should invoke the error handler by calling next() with an error
+  
+  - Users Model
+    - Once the handshaking process has completed in the middleware method, the middleware will need our users model to be able to create a new account for the user that was just authenticated or retrieve an existing account, if this is a returning users.
+
+    - Create a new method that will do a lookup for the account by email or username
+    - If found, return it
+    - If not, create a new account for the user and return that
+
+**********************************************
+
+- Testing 
+  - You are not required to write automated tests for the /oauth route or the middleware, as this will end up requiring (and invoking) actual user requests at the OAuth Provider’s API which we don’t want.

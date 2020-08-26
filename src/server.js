@@ -1,24 +1,21 @@
 'use strict';
 
+require('dotenv').config();
 const express = require('express');
+
+// const users = require('./auth/middleware/users.js');
+// const basicAuth = require('./auth/middleware/basic.js');
+// const oauth = require('./auth/middleware/oauth.js');
 
 const errorHandler = require('./middleware/500.js');
 const notFoundHandler = require('./middleware/404.js');
+const router = require('./auth/router.js');
 
 const app = express();
+
+app.use(express.static('../public'));
 app.use(express.json());
-
-
-// const categoryRouter = require('./categories.js');
-// const productRouter = require('./products.js');
-
-
-//middle ware
-//const requestTime = require('../../middleware/timestamp.js');
-
-
-// app.use('api/v2', categoryRouter);
-// app.use(productRouter);
+app.use(router);
 
 app.use('*', notFoundHandler);
 app.use(errorHandler);
