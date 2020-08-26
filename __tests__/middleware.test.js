@@ -14,13 +14,13 @@ beforeAll(async (done) => {
 
 describe('Auth Middleware', () => {
 
-  let errorObject = {'message': 'Invalid User ID/Password', 'status': 401, 'statusMessage': 'Unauthorized'};
+  let errorObject = {'message': 'Invalid Authorization Headers', 'status': 401, 'statusMessage': 'Unauthorized'};
 
   describe('user authentication', () => {
 
     let cachedToken; // in case you want to test reuse of token
 
-    it('fails a login for a user (admin) with the incorrect basic credentials', async () => {
+    it('fails a login with misspelled authorization header ', async () => {
 
       let req = {
         headers: {

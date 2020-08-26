@@ -28,6 +28,7 @@
     "jsonwebtoken": "^8.5.1",
     "mongo": "^0.1.0",
     "mongoose": "^5.10.0",
+    "superagent": "^6.0.0",
     "supergoose": "^0.2.6",
     "supertest": "^4.0.2"
   },
