@@ -1,6 +1,6 @@
 'use strict';
 
-require('dotenv').config();
+
 const express = require('express');
 
 // const users = require('./auth/middleware/users.js');
