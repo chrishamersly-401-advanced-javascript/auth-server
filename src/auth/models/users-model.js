@@ -4,6 +4,7 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const SECRET = process.env.JWT_SECRET;
 
 const users = new mongoose.Schema({
   username: { type: String, required: true, unique: true},
@@ -33,36 +34,42 @@ users.methods.comparePassword = async function(password) {
 
 //adding a method to a model
 users.methods.generateToken = function () {
-  const payload = {
+  let token = {
+    id: this._id, 
     role: this.role,
   };
-  return jwt.sign(payload, process.env.JWT_SECRET);
-};
+  let options = { };
 
-users.statics.createFromOauth = async function (email) {
+  return jwt.sign(token, SECRET, options);
   
-  if (!email) {
-    return Promise.reject('Validation Error');
-  }
+};
 
-  const user = await this.findOne({ email });
+users.statics.createFromOauth = function (username) {
 
-  // if(!email) {
-  //   throw new Error ('Validation Error');
-  // }
+  if (!username) { return Promise.reject('Validation Error'); }
 
-  if(user) {
-    return user;
-  }
-  else {
-    return this.create({ 
-      username: email, 
-      password: 'none', 
-      email: email});
-  }
+  return this.findOne({ username })
+    .then(user => {
+      if (!user) { throw new Error('User Not Found'); }
+      console.log('Welcome Back', user.username);
+      return user;
+    })
+    .catch(error => {
+      console.log('Creating new user');
+      let password = 'noteventrue';
+      return this.create({ username, password });
+    });
 
 };
-//check to see if user is truthy
+
+
+
+users.statics.authenticateToken = function (token) {
+  let parsedToken = jwt.verify(token, SECRET);
+  return this.findById(parsedToken.id);
+
+};
+
 
 
 
