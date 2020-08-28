@@ -17,11 +17,9 @@
 
     let URL = 'https://github.com/login/oauth/authorize';
 
-   
-
     let options = {
-
-      client_id: 'c2e6d29186baa36b53d6',
+      // client_id ='',
+      client_id: '20890cdbd3f7991d7d1e',
       redirect_uri: 'http://localhost:3000/oauth',
       scope: 'read:user',
       state: '401appconsent'
@@ -33,7 +31,7 @@
     }).join("&");
 
     let authURL = `${URL}?${QueryString}`;
-
+    console.log('authUrl', authURL);
     let link = document.getElementById('oauth');
     link.setAttribute('href', authURL);
 

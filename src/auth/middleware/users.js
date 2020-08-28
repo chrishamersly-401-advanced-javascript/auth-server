@@ -9,7 +9,7 @@ let db = {};
 
 let users = {};
 
-
+// Because we're using async bcrypt, this function needs to return a value or a promise rejection
 users.save = async function (record) {
 
   if (!db[record.username]) {
