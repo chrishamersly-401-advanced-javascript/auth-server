@@ -1,53 +1,49 @@
 'use strict';
-//take advantage of hooks within mongoose.
-require('dotenv').config();
+
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const SECRET = process.env.JWT_SECRET;
+const SINGLE_USE_TOKENS = false;
+const TOKEN_EXPIRE = process.env.TOKEN_EXPIRE || '60m';
+const SECRET = process.env.SECRET || 'supersecret';
+const usedTokens = new Set();
 
 const users = new mongoose.Schema({
-  username: { type: String, required: true, unique: true},
-  password: {type: String, required: true},
-  email: {type: String},
-  role: {type: String, default:'username', enum: ['admin', 'editor', 'user']},
+  username: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  fullname: { type: String },
+  email: { type: String },
+  role: { type: String, default: 'user', enum: ['admin', 'editor', 'writer', 'user'] },
+  capabilities: { type: Array, required: true, default: [] },
 });
 
-users.pre('save', async function() {
+users.pre('save', async function () {
   if (this.isModified('password')) {
     this.password = await bcrypt.hash(this.password, 10);
   }
+  let role = this.role; 
+
+  if(this.isModified('role')) {
+    switch (role) {
+    case 'admin':
+      this.capabilities = ['create', 'read', 'update', 'delete'];
+      break;
+    case 'editor':
+      this.capabilities = ['create', 'read', 'update'];
+      break;
+    case 'writer':
+      this.capabilities = ['create', 'read'];
+      break;
+    case 'user':
+      this.capabilities = ['read'];
+      break;
+    }
+  }
 });
-
-
-//static
-users.statics.authenticateBasic = async function (username, password) {
-  const user = await this.findOne({username});
-  return user && await user.comparePassword(password);
-};
-
-//because its tied to a particular user. 
-users.methods.comparePassword = async function(password) {
-  const passwordMatch = await bcrypt.compare(password, this.password);
-  return passwordMatch ? this : null; 
-};
-
-//adding a method to a model
-users.methods.generateToken = function () {
-  let token = {
-    id: this._id, 
-    role: this.role,
-  };
-  let options = { };
-
-  return jwt.sign(token, SECRET, options);
-  
-};
 
 users.statics.createFromOauth = function (username) {
 
   if (!username) { return Promise.reject('Validation Error'); }
-
   return this.findOne({ username })
     .then(user => {
       if (!user) { throw new Error('User Not Found'); }
@@ -56,22 +52,53 @@ users.statics.createFromOauth = function (username) {
     })
     .catch(error => {
       console.log('Creating new user');
-      let password = 'noteventrue';
-      return this.create({ username, password });
+      let password = 'incorrectpassword';
+      let role = 'user'; 
+      return this.create({ username, password, role });
     });
-
 };
-
-
 
 users.statics.authenticateToken = function (token) {
-  let parsedToken = jwt.verify(token, SECRET);
-  return this.findById(parsedToken.id);
+  if (usedTokens.has(token)) {
+    console.log('unique fail');
+    return Promise.reject('Invalid Token');
+  }
+  try {
+    let parsedToken = jwt.verify(token, SECRET);
+    (SINGLE_USE_TOKENS) && parsedToken.type !== 'key' && usedTokens.add(token);
+
+    let query = { _id: parsedToken.id };
+    return this.findOne(query);
+  } catch (e) { throw new Error('Invalid Token'); }
 
 };
 
+users.statics.authenticateBasic = function (username, password) {
+  let query = { username };
+  return this.findOne(query)
+    .then(user => user && user.comparePassword(password))
+    .catch(error => { throw error; });
+};
 
+users.methods.comparePassword = function (password) {
+  return bcrypt.compare(password, this.password)
+    .then(valid => valid ? this : null);
+};
 
+users.methods.generateToken = function (type) {
+  let token = {
+    id: this._id,
+    role: this.role,
+    capabilities: this.capabilities,
+  };
+  let options = {};
+  if (type !== 'key' && !!TOKEN_EXPIRE) {
+    options = { expiresIn: TOKEN_EXPIRE };
+  }
+  return jwt.sign(token, SECRET, options);
+};
+users.methods.generateKey = function () {
+  return this.generateToken('key');
+};
 
 module.exports = mongoose.model('users', users);
-

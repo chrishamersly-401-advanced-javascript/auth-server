@@ -90,3 +90,21 @@ Testing
 
 - Testing 
   - You are not required to write automated tests for the /oauth route or the middleware, as this will end up requiring (and invoking) actual user requests at the OAuth Provider’s API which we don’t want.
+
+# Lab 14 
+  - - /public
+  - anyone can get in
+- /private 
+  - only validated users get in
+- /readonly 
+  - user must have 'read' capabilities
+  - aka be a 'user' role or above
+- /create
+  - user must have 'create' capabilities
+  - aka be a 'writer' role or above
+- /update
+  - user must have 'update' capabilities
+  - aka be an 'editor' role or above
+- /delete
+  - user must have 'delete' capabilities
+  - aka must be an 'admin'  

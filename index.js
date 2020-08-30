@@ -3,7 +3,7 @@
 const mongoose = require('mongoose');
 const server = require('./src/server/server');
 
-const MONGODB_URI = 'mongodb://localhost:27017/users';
+const MONGODB_URI = 'mongodb://localhost:27017/auth-server-acl';
 
 const mongooseOptions = {
   useNewUrlParser: true,

@@ -2,6 +2,8 @@
 
 
 const express = require('express');
+const cors = require('cors');
+const morgan = require('morgan');
 
 // const users = require('./auth/middleware/users.js');
 // const basicAuth = require('./auth/middleware/basic.js');
@@ -12,6 +14,8 @@ const notFoundHandler = require('../middleware/404.js');
 const router = require('../auth/router.js');
 
 const app = express();
+app.use(cors());
+app.use(morgan('dev'));
 
 app.use(express.static('./public'));
 app.use(express.json());
