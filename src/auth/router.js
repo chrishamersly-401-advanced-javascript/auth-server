@@ -2,12 +2,12 @@
 
 const express = require('express');
 const router = express.Router();
-// const auth = require('./middleware/oauth.js');
 const User = require('./models/users-model.js');
 const oauth = require('./middleware/oauth.js');
 const basicAuth = require('./middleware/basic.js');
 const bearer = require('./middleware/bearer.js');
-// const express = require('express');
+const permissions = require('./middleware/acl.js');
+
 
 router.post('/signup', async (req, res, next)  => {
   const user = await User.create(req.body);
@@ -28,9 +28,6 @@ router.post('/signin', basicAuth, (req, res, next) => {
   });
 });
 
-// router.use('/', (req, res) => {
-//   res.render('../../public/index.html');
-// });
 
 router.get('/oauth', oauth, (req, res) => {
   console.log('in get route for oauth');
@@ -45,4 +42,14 @@ router.get('/secret', bearer, (req,res) => {
   res.status(200).send('access allowed');
 } );
 
+router.get('/public', routeHandler);
+router.get('/private', bearer, routeHandler);
+router.get('/readonly', bearer, permissions('read'), routeHandler);
+router.post('/create', bearer, permissions('create'), routeHandler);
+router.put('/update', bearer, permissions('update'), routeHandler);
+router.delete('/delete', bearer, permissions('delete'), routeHandler);
+
+function routeHandler(req, res) {
+  res.status(200).send('Access Granted');
+}
 module.exports = router;

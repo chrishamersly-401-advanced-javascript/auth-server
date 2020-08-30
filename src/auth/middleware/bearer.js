@@ -1,18 +1,21 @@
 'use strict';
 
-const Users = require('../models/users-model.js');
+const User = require('../models/users-model.js');
 
 module.exports = async (req, res, next) => {
-  if (!req.headers.authorization) {next('Invalid Login: Missing Headers'); return; }
-
-  let token = req.headers.authorization.split('').pop();
-
+  if (!req.headers.authorization) { next('Invalid Login: Missing Headers'); return; }
+  let token = req.headers.authorization.split(' ').pop();
   try {
-    const validUser = await Users.authenticateToken(token);
+    const validUser = await User.authenticateToken(token);
     req.user = validUser;
-    next(); 
-  }
-  catch (err) {
+    req.user = {
+      username: validUser.username,
+      fullname: validUser.fullname,
+      email: validUser.email,
+      capabilities: validUser.capabilities,
+    };
+    next();
+  } catch (err) {
     next('Invalid Login');
   }
 };
