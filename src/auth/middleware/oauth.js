@@ -9,8 +9,8 @@ const tokenServerUrl = 'https://github.com/login/oauth/access_token';
 const remoteAPI = process.env.REMOTE_API;
 
 const API_SERVER = process.env.API_SERVER;
-const CLIENT_ID = '20890cdbd3f7991d7d1e';
-const CLIENT_SECRET = '385dbe4e6f30bcc22c5fc278002f70a23eedff2f';
+const CLIENT_ID = process.env.GITHUB_CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
 console.log('in the oath route');
 
 module.exports = async function authorize(req, res, next) {
@@ -37,21 +37,15 @@ module.exports = async function authorize(req, res, next) {
 };
 
 async function exchangeCodeForToken(code) {
-  console.log('made it to the exchange function');
   let tokenResponse = await superagent.post(tokenServerUrl).send({
     code: code,
-    client_id: '20890cdbd3f7991d7d1e',
-    client_secret: '385dbe4e6f30bcc22c5fc278002f70a23eedff2f',
+    client_id: CLIENT_ID,
+    client_secret: CLIENT_SECRET,
     redirect_uri: API_SERVER,
     grant_type: 'authorization_code',
   });
-  console.log('made it below the exchange function');
-  // console.log('tokenResponse.body', tokenResponse);
-  let remoteToken = tokenResponse.body.access_token;
-  console.log('tokenResponse.response.body',tokenResponse.response.body);
-
-  return remoteToken;
-
+  let access_token = tokenResponse.body.access_token;
+  return access_token;
 }
 
 async function getRemoteUserInfo(remotetoken) {
