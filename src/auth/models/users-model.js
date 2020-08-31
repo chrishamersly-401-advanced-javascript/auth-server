@@ -53,8 +53,7 @@ users.statics.createFromOauth = function (username) {
     .catch(error => {
       console.log('Creating new user');
       let password = 'incorrectpassword';
-      let role = 'admin'; 
-      return this.create({ username, password, role });
+      return this.create({ username, password });
     });
 };
 
